@@ -156,7 +156,7 @@
     toastEl.textContent = msg;
     toastEl.className = "toast show" + (bad ? " bad" : "");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2600);
+    toastTimer = setTimeout(() => toastEl.classList.remove("show"), bad ? 8000 : 2600);
   }
 
   async function fetchData() {
@@ -239,6 +239,7 @@
   // Détection de doublons, même écrits différemment (IA Groq, repli local si indisponible)
   // >>> COLLE TA CLÉ GROQ ICI, entre les guillemets <<<
   const GROQ_KEY = "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";
+  const GROQ_MODEL = "openai/gpt-oss-120b"; // si Groq le retire un jour : voir console.groq.com/docs/models
   const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
 
   let aiError = "";
@@ -254,20 +255,24 @@
         method: "POST", signal: ctrl.signal,
         headers: { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_KEY },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile", temperature: 0, response_format: { type: "json_object" },
+          model: GROQ_MODEL, temperature: 0, reasoning_effort: "low", response_format: { type: "json_object" },
           messages: [
             { role: "system", content: "Tu détectes les doublons dans une liste de propositions. Deux propositions sont des doublons si elles désignent la même chose, même écrites différemment : sigle ou acronyme et nom complet, abréviation, traduction dans une autre langue, nom original et nom localisé, surnom courant, faute de frappe, accents, pluriel. Exemples de doublons : « SNK », « AOT », « Attack on Titan », « L'Attaque des Titans » et « Shingeki no Kyojin » sont tous la même chose ; « JJK » = « Jujutsu Kaisen » ; « LOTR » = « Le Seigneur des anneaux ». Ne sont PAS des doublons deux choses réellement distinctes, même proches (ex. « Naruto » et « Boruto », « Harry Potter 1 » et « Harry Potter 2 »). Réponds uniquement en JSON : {\"doublon\": <index numérique de la proposition existante identique, ou null>}." },
             { role: "user", content: JSON.stringify({ nouvelle: text, existantes: list }) }
           ]
         })
       });
-      if (!res.ok) throw new Error(res.status);
+      if (!res.ok) {
+        let detail = "";
+        try { detail = (await res.json()).error.message; } catch {}
+        throw new Error(res.status + (detail ? " : " + detail.slice(0, 120) : ""));
+      }
       const j = await res.json();
       const idx = JSON.parse(j.choices[0].message.content).doublon;
       return Number.isInteger(idx) && list[idx] !== undefined ? list[idx] : null;
     } catch (err) {
       console.warn("Vérification IA indisponible :", err);
-      aiError = String(err.message || err);
+      aiError = err.name === "AbortError" ? "délai dépassé" : /Failed to fetch|NetworkError/i.test(err.message) ? "connexion bloquée (réseau, bloqueur de pub ou clé mal collée)" : String(err.message || err);
       return null;
     } finally { clearTimeout(timer); }
   }
