@@ -241,7 +241,9 @@
   const GROQ_KEY = "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";
   const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
 
+  let aiError = "";
   async function findDuplicate(text, list) {
+    aiError = "";
     const exact = list.find(p => norm(p) === norm(text));
     if (exact) return exact;
     if (!list.length || !GROQ_KEY.startsWith("gsk_")) return null; // sans clé valide : comparaison simple seulement
@@ -254,7 +256,7 @@
         body: JSON.stringify({
           model: "llama-3.3-70b-versatile", temperature: 0, response_format: { type: "json_object" },
           messages: [
-            { role: "system", content: "Tu compares une nouvelle proposition à une liste. Dis si elle désigne la même chose qu'une proposition existante (fautes, accents, pluriel, synonyme évident, autre formulation). Réponds uniquement en JSON : {\"doublon\": <index de la proposition existante ou null>}. Des choses simplement proches mais différentes ne sont pas des doublons." },
+            { role: "system", content: "Tu détectes les doublons dans une liste de propositions. Deux propositions sont des doublons si elles désignent la même chose, même écrites différemment : sigle ou acronyme et nom complet, abréviation, traduction dans une autre langue, nom original et nom localisé, surnom courant, faute de frappe, accents, pluriel. Exemples de doublons : « SNK », « AOT », « Attack on Titan », « L'Attaque des Titans » et « Shingeki no Kyojin » sont tous la même chose ; « JJK » = « Jujutsu Kaisen » ; « LOTR » = « Le Seigneur des anneaux ». Ne sont PAS des doublons deux choses réellement distinctes, même proches (ex. « Naruto » et « Boruto », « Harry Potter 1 » et « Harry Potter 2 »). Réponds uniquement en JSON : {\"doublon\": <index numérique de la proposition existante identique, ou null>}." },
             { role: "user", content: JSON.stringify({ nouvelle: text, existantes: list }) }
           ]
         })
@@ -265,6 +267,7 @@
       return Number.isInteger(idx) && list[idx] !== undefined ? list[idx] : null;
     } catch (err) {
       console.warn("Vérification IA indisponible :", err);
+      aiError = String(err.message || err);
       return null;
     } finally { clearTimeout(timer); }
   }
@@ -283,7 +286,10 @@
         return;
       }
       data.propositions.push(text);
-      if (await saveData(data)) { propInput.value = ""; toast("Proposition ajoutée."); }
+      if (await saveData(data)) {
+        propInput.value = "";
+        toast(aiError ? "Ajoutée, mais la vérification IA a échoué (" + aiError + ")" : "Proposition ajoutée.", !!aiError);
+      }
     });
   });
 
