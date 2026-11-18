@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Réinitialisation</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#140e2b; --line:rgba(255,255,255,.13); --text:#f6f1ff; --muted:#b3a8d6; --coral:#ff5d8f; --mint:#6ee7c8; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { color-scheme: dark; }
+  body { min-height:100vh; min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:20px; color:var(--text);
+    font-family:'DM Sans',system-ui,sans-serif;
+    background: radial-gradient(800px 500px at 90% -10%, rgba(255,93,143,.3), transparent 60%), radial-gradient(700px 500px at -10% 110%, rgba(110,231,200,.12), transparent 60%), var(--ink); }
+  main { width:100%; max-width:440px; padding:30px 24px; border-radius:26px; background:rgba(255,255,255,.06); border:1px solid var(--line); text-align:center; }
+  h1 { font:800 1.9rem 'Bricolage Grotesque','Trebuchet MS',sans-serif; letter-spacing:-.03em; margin-bottom:10px; }
+  p { color:var(--muted); line-height:1.55; margin-bottom:22px; }
+  #state { color:var(--text); font-weight:700; }
+  button { width:100%; padding:16px; border:0; border-radius:16px; cursor:pointer; font:800 1.05rem 'Bricolage Grotesque',sans-serif; color:#fff; background:var(--coral); box-shadow:0 12px 30px -10px rgba(255,93,143,.7); transition:filter .15s, transform .15s; }
+  button:hover { filter:brightness(1.08); transform:translateY(-1px); }
+  button:disabled { opacity:.5; cursor:wait; transform:none; }
+  button:focus-visible { outline:3px solid var(--mint); outline-offset:3px; }
+  #msg { margin-top:16px; min-height:1.4em; font-size:.92rem; color:var(--mint); }
+  #msg.bad { color:#ffc2d4; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Réinitialiser le tirage</h1>
+  <p>Cette action efface toutes les propositions et le gagnant, pour tout le monde. <span id="state"></span></p>
+  <button id="resetBtn">Tout effacer</button>
+  <div id="msg" role="status"></div>
+</main>
+<script>
+  const API_URL = "https://api.npoint.io/a690eb604cfe91d995e2";
+  const $ = id => document.getElementById(id);
+  const btn = $('resetBtn'), msg = $('msg'), state = $('state');
+
+  function say(t, bad) { msg.textContent = t; msg.className = bad ? "bad" : ""; }
+
+  async function refresh() {
+    try {
+      const d = await (await fetch(API_URL, { cache: "no-store" })).json();
+      const n = Array.isArray(d.propositions) ? d.propositions.length : 0;
+      state.textContent = n + (n > 1 ? " propositions enregistrées" : " proposition enregistrée") + (d.tire ? ", tirage effectué." : ".");
+    } catch { state.textContent = ""; }
+  }
+
+  btn.addEventListener('click', async () => {
+    if (!confirm("Voulez-vous vraiment effacer toutes les propositions et réinitialiser le tirage ?")) return;
+    btn.disabled = true; say("");
+    try {
+      const res = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ propositions: [], tire: false, gagnant: "" }) });
+      if (!res.ok) throw new Error(res.status);
+      say("Tirage réinitialisé.");
+      refresh();
+    } catch (err) { say("Échec de la réinitialisation. Réessayez.", true); }
+    btn.disabled = false;
+  });
+  refresh();
+</script>
+</body>
+</html>
