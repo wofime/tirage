@@ -3,200 +3,326 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tirage au Sort Anime & Manga</title>
+  <title>Tirage au Sort</title>
   <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --text: #f8fafc;
+      --subtext: #94a3b8;
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 40px auto;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
       padding: 20px;
-      background-color: #121212;
-      color: #ffffff;
+    }
+
+    .container {
+      background-color: var(--card);
+      width: 100%;
+      max-width: 450px;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    p.subtitle {
+      color: var(--subtext);
+      font-size: 0.9rem;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background-color: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+    }
+
+    button {
+      padding: 12px 18px;
+      border-radius: 8px;
+      border: none;
+      background-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background-color: var(--accent-hover);
+    }
+
+    .btn-draw {
+      width: 100%;
+      background-color: #10b981;
+      font-size: 1.1rem;
+      padding: 14px;
+      margin-bottom: 20px;
+    }
+
+    .btn-draw:hover {
+      background-color: #059669;
+    }
+
+    .winner-box {
+      background-color: rgba(16, 185, 129, 0.15);
+      border: 1px solid #10b981;
+      padding: 16px;
+      border-radius: 12px;
+      text-align: center;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .winner-box h2 {
+      font-size: 1.2rem;
+      color: #34d399;
+      margin-bottom: 4px;
+    }
+
+    .winner-name {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .list-title {
+      font-size: 0.9rem;
+      color: var(--subtext);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    ul {
+      list-style: none;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
       border-radius: 8px;
     }
-    h1, h2 { text-align: center; color: #00d46a; }
-    textarea {
-      width: 100%;
-      height: 100px;
-      margin-bottom: 10px;
-      background: #1e1e1e;
-      color: #fff;
-      border: 1px solid #333;
-      padding: 10px;
-      border-radius: 4px;
-      box-sizing: border-box;
+
+    li {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
     }
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      background: #00d46a;
-      color: #000;
-      font-weight: bold;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 16px;
+
+    li:last-child {
+      border-bottom: none;
     }
-    button:hover { background: #00b359; }
-    .result-box {
+
+    .empty-msg {
+      padding: 14px;
+      color: var(--subtext);
+      text-align: center;
+      font-style: italic;
+    }
+
+    .footer-actions {
       margin-top: 20px;
-      padding: 15px;
-      background: #1e1e1e;
-      border-radius: 6px;
-    }
-    .winner {
-      font-size: 26px;
-      font-weight: bold;
-      color: #ffcc00;
       text-align: center;
-      margin: 15px 0;
-      min-height: 35px;
     }
-    a.vinted-btn {
-      display: block;
-      text-align: center;
-      background: #007787;
-      color: white;
-      text-decoration: none;
-      padding: 10px;
-      border-radius: 4px;
-      font-weight: bold;
-      margin-top: 10px;
+
+    .btn-reset {
+      background: transparent;
+      color: #ef4444;
+      font-size: 0.8rem;
+      text-decoration: underline;
+      padding: 0;
     }
-    a.vinted-btn:hover { background: #005f6c; }
-    ul { padding-left: 20px; }
-    li { margin-bottom: 6px; font-size: 16px; }
+
+    .btn-reset:hover {
+      background: transparent;
+      color: #dc2626;
+    }
   </style>
 </head>
 <body>
 
-  <h1>🎲 Tirage au Sort Anime & Manga</h1>
+  <div class="container">
+    <h1>🎲 Tirage au Sort</h1>
+    <p class="subtitle">Faites vos propositions, puis tirez au sort !</p>
 
-  <label for="propositions">Entrez les propositions (séparées par des virgules) :</label>
-  <textarea id="propositions" placeholder="Ex: SNK, Naruto, Attack on Titan, AOT, MHA, My Hero Academia..."></textarea>
+    <div id="winnerBox" class="winner-box">
+      <h2>🎉 Résultat du Tirage</h2>
+      <div id="winnerName" class="winner-name">...</div>
+    </div>
 
-  <button onclick="traiterEtTirer()">Trier avec Groq & Lancer le Tirage</button>
+    <form id="propForm" class="form-group">
+      <input type="text" id="propInput" placeholder="Votre proposition..." required>
+      <button type="submit">Ajouter</button>
+    </form>
 
-  <div id="statut" style="margin-top: 15px; text-align: center; font-weight: bold;"></div>
+    <button id="drawBtn" class="btn-draw">🎯 Tirer au sort</button>
 
-  <div id="resultat" class="result-box" style="display: none;">
-    <h2>📋 Liste nettoyée (sans doublons) :</h2>
-    <ul id="listeNettoyee"></ul>
+    <div class="list-title">Propositions enregistrées (<span id="count">0</span>)</div>
+    <ul id="propList">
+      <li class="empty-msg">Chargement...</li>
+    </ul>
 
-    <hr style="border-color: #333; margin: 20px 0;">
-
-    <h2>🎉 Résultat du Tirage au Sort :</h2>
-    <div id="gagnant" class="winner"></div>
-    <div id="lienVintedContainer"></div>
+    <div class="footer-actions">
+      <button id="resetBtn" class="btn-reset">Réinitialiser tout le tirage</button>
+    </div>
   </div>
 
   <script>
-    // ⚠️ Ta clé API Groq mise en dur
-    const GROQ_API_KEY = "gsk_VOTRE_CLE_GROQ_ICI";
+    const API_URL = "https://api.npoint.io/a690eb604cfe91d995e2";
 
-    async function unifierEtFiltrerPropositions(listePropositions) {
-      const systemPrompt = `Tu es un expert en mangas et animés, spécialisé dans la normalisation de données.
-Ta tâche est d'analyser une liste de propositions d'utilisateurs et de :
-1. Identifier les synonymes, acronymes et traductions (ex: "SNK", "AOT", "Attack on Titan", "Shingeki no Kyojin" -> "L'Attaque des Titans").
-2. Regrouper toutes les variantes sous LE titre officiel le plus courant en français.
-3. Ne garder QU'UNE SEULE occurrence par œuvre unique.
-4. Répondre STRICTEMENT avec un tableau JSON de chaînes de caractères (strings), sans formatage Markdown, sans explications.
+    const propForm = document.getElementById('propForm');
+    const propInput = document.getElementById('propInput');
+    const propList = document.getElementById('propList');
+    const countSpan = document.getElementById('count');
+    const drawBtn = document.getElementById('drawBtn');
+    const winnerBox = document.getElementById('winnerBox');
+    const winnerName = document.getElementById('winnerName');
+    const resetBtn = document.getElementById('resetBtn');
 
-Exemple d'entrée : ["SNK", "Naruto", "Attack on Titan", "aot", "Shingeki no Kyojin"]
-Exemple de sortie attendue : ["L'Attaque des Titans", "Naruto"]`;
-
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${GROQ_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: `Propositions à unifier : ${JSON.stringify(listePropositions)}` }
-          ],
-          temperature: 0.1
-        })
-      });
-
-      const data = await response.json();
-      let texteBrut = data.choices[0].message.content.trim();
-      
-      // Nettoyage au cas où Groq ajoute des balises Markdown ```json
-      texteBrut = texteBrut.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-      
-      return JSON.parse(texteBrut);
+    // Récupérer les données depuis l'API
+    async function fetchData() {
+      try {
+        const res = await fetch(API_URL);
+        return await res.json();
+      } catch (err) {
+        console.error("Erreur API :", err);
+      }
     }
 
-    async function traiterEtTirer() {
-      const input = document.getElementById("propositions").value;
-      const statut = document.getElementById("statut");
-      const divResultat = document.getElementById("resultat");
-      const divGagnant = document.getElementById("gagnant");
-      const containerVinted = document.getElementById("lienVintedContainer");
-      
-      if (!input.trim()) {
-        alert("Veuillez entrer au moins une proposition !");
+    // Sauvegarder les données vers l'API
+    async function saveData(data) {
+      try {
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+      } catch (err) {
+        console.error("Erreur de sauvegarde :", err);
+      }
+    }
+
+    // Mettre à jour l'affichage sur la page
+    async function updateUI() {
+      const data = await fetchData();
+      if (!data) return;
+
+      // Affichage de la liste
+      propList.innerHTML = "";
+      const props = data.propositions || [];
+      countSpan.textContent = props.length;
+
+      if (props.length === 0) {
+        propList.innerHTML = '<li class="empty-msg">Aucune proposition pour l\'instant.</li>';
+      } else {
+        props.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          propList.appendChild(li);
+        });
+      }
+
+      // Affichage de l'état du tirage
+      if (data.tire) {
+        winnerName.textContent = data.gagnant;
+        winnerBox.style.display = "block";
+        drawBtn.style.display = "none";
+        propForm.style.display = "none";
+      } else {
+        winnerBox.style.display = "none";
+        drawBtn.style.display = "block";
+        propForm.style.display = "flex";
+      }
+    }
+
+    // Ajouter une proposition
+    propForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = propInput.value.trim();
+      if (!text) return;
+
+      const data = await fetchData();
+      data.propositions.push(text);
+      await saveData(data);
+
+      propInput.value = "";
+      updateUI();
+    });
+
+    // Effectuer le tirage
+    drawBtn.addEventListener('click', async () => {
+      const data = await fetchData();
+
+      if (data.tire) {
+        alert("Le tirage a déjà été effectué !");
         return;
       }
 
-      // 1. Découpage du texte par virgules
-      const propositionsBrutes = input.split(",").map(p => p.trim()).filter(p => p.length > 0);
-
-      statut.innerText = "⏳ Analyse et regroupement des doublons avec Groq...";
-      divResultat.style.display = "none";
-      containerVinted.innerHTML = "";
-
-      try {
-        // 2. Nettoyage via Groq
-        const listeNettoyee = await unifierEtFiltrerPropositions(propositionsBrutes);
-
-        // 3. Affichage de la liste nettoyée
-        const ul = document.getElementById("listeNettoyee");
-        ul.innerHTML = "";
-        listeNettoyee.forEach(item => {
-          const li = document.createElement("li");
-          li.innerText = item;
-          ul.appendChild(li);
-        });
-
-        statut.innerText = "";
-        divResultat.style.display = "block";
-
-        // 4. Animation du tirage au sort aléatoire parmi la liste
-        let tours = 0;
-        const maxTours = 20; // Nombre de défilements avant de s'arrêter
-        const intervalle = setInterval(() => {
-          const indexTemp = Math.floor(Math.random() * listeNettoyee.length);
-          divGagnant.innerText = listeNettoyee[indexTemp];
-          tours++;
-
-          if (tours >= maxTours) {
-            clearInterval(intervalle);
-            
-            // Choix du gagnant final
-            const indexGagnant = Math.floor(Math.random() * listeNettoyee.length);
-            const oeuvregagnante = listeNettoyee[indexGagnant];
-            divGagnant.innerText = "🏆 " + oeuvregagnante;
-
-            // 5. Lien Vinted sur le résultat final
-            const urlVinted = `[https://www.vinted.fr/catalog?search_text=$](https://www.vinted.fr/catalog?search_text=$){encodeURIComponent(oeuvregagnante)}`;
-            containerVinted.innerHTML = `
-              <a class="vinted-btn" href="${urlVinted}" target="_blank">
-                🔍 Chercher "${oeuvregagnante}" sur Vinted
-              </a>
-            `;
-          }
-        }, 100);
-
-      } catch (erreur) {
-        console.error(erreur);
-        statut.innerText = "❌ Erreur lors du traitement par Groq. Vérifie ta clé API ou la console.";
+      if (!data.propositions || data.propositions.length === 0) {
+        alert("Ajoutez au moins une proposition avant de tirer !");
+        return;
       }
-    }
+
+      const index = Math.floor(Math.random() * data.propositions.length);
+      data.gagnant = data.propositions[index];
+      data.tire = true;
+
+      await saveData(data);
+      updateUI();
+    });
+
+    // Réinitialiser tout
+    resetBtn.addEventListener('click', async () => {
+      if (confirm("Voulez-vous vraiment effacer toutes les propositions et réinitialiser le tirage ?")) {
+        const emptyData = { propositions: [], tire: false, gagnant: "" };
+        await saveData(emptyData);
+        updateUI();
+      }
+    });
+
+    // Rafraîchissement automatique toutes les 3 secondes pour la synchro à distance
+    setInterval(updateUI, 3000);
+
+    // Premier chargement
+    updateUI();
   </script>
 </body>
 </html>
